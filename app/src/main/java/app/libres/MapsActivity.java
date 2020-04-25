@@ -1,50 +1,47 @@
 package app.libres;
 
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Arrays;
+import java.util.List;
+
+import static com.google.android.gms.maps.CameraUpdateFactory.newCameraPosition;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "app.libres.MapsActivity";
     private static final int DEFAULT_ZOOM = 14;
-    public static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     public static final int ONE_KM_RADIUS = 1000;
+    private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
 
     private GoogleMap mMap;
-    private boolean mLocationPermissionGranted;
     private LatLng mDefaultLocation = new LatLng(40.4378698, -3.8196207); //Madrid as default location.
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Location mLastKnownLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,39 +52,61 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!Places.isInitialized()) Places.initialize(this, apiKey);
         PlacesClient placesClient = Places.createClient(this);
 
-        setupAutocompleteFragment();
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("");
+        toolbar.inflateMenu(R.menu.main_menu);
 
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        FloatingActionButton fab = findViewById(R.id.places_button);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<Place.Field> fields = Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG);
+                Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
+                        .setCountry("ES")
+                        .setHint("¿Dónde vives?")
+                        .build(getApplicationContext());
+                startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
+            }
+        });
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
-    private void setupAutocompleteFragment() {
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.fragment_autocomplete);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Place place = Autocomplete.getPlaceFromIntent(data);
+                setHomeMarker(place.getLatLng(), place.getAddress());
+            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                Log.e(TAG, "An error occurred: " + resultCode);
+                Status status = Autocomplete.getStatusFromIntent(data);
+                Log.i(TAG, status.getStatusMessage());
+            } else if (resultCode == RESULT_CANCELED) { /* */}
+        }
+    }
 
-        autocompleteFragment.setHint("Dónde vives");
-        autocompleteFragment.setCountry("ES");
+    private void setHomeMarker(LatLng home, String address) {
+        mMap.clear();
+        mMap.addCircle(new CircleOptions()
+                .center(home)
+                .radius(ONE_KM_RADIUS)
+                .strokeWidth(2)
+                .strokeColor(Color.GREEN)
+                .fillColor(Color.parseColor("#50C1FCC1")));
 
-        // Specify the types of place data to return.
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID,
-                Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG));
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(home)
+                .zoom(DEFAULT_ZOOM).build();
 
-        // Set up a PlaceSelectionListener to handle the response.
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
-            }
+        mMap.addMarker(new MarkerOptions().position(home)
+                .title(address))
+                .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_home_blue_24));
 
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.e(TAG, "An error occurred: " + status);
-            }
-        });
+        mMap.animateCamera(newCameraPosition(cameraPosition));
     }
 
     @Override
@@ -97,98 +116,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!success) {
             Log.e(TAG, "Style parsing failed.");
         }
-        updateLocationUI();
-        getDeviceLocation();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        mLocationPermissionGranted = false;
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mLocationPermissionGranted = true;
-                }
-            }
-        }
-        updateLocationUI();
-    }
-
-    private void updateLocationUI() {
-        Log.i(TAG, "Updating location UI");
-        if (mMap == null) {
-            return;
-        }
-        try {
-            if (mLocationPermissionGranted) {
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
-            } else {
-                mMap.setMyLocationEnabled(false);
-                mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mLastKnownLocation = null;
-                getLocationPermission();
-            }
-        } catch (SecurityException e) {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-    private void getLocationPermission() {
-        Log.i(TAG, "Getting location Permission");
-
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    private void getDeviceLocation() {
-        Log.i(TAG, "Getting device last known location");
-        try {
-            if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful() && task.getResult() != null) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = task.getResult();
-                            LatLng lastKnownLatLng = new LatLng(mLastKnownLocation.getLatitude(),
-                                    mLastKnownLocation.getLongitude());
-
-                            mMap.addCircle(new CircleOptions()
-                                    .center(lastKnownLatLng)
-                                    .radius(ONE_KM_RADIUS)
-                                    .strokeWidth(2)
-                                    .strokeColor(Color.GREEN)
-                                    .fillColor(Color.parseColor("#50C1FCC1")));
-
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastKnownLatLng, DEFAULT_ZOOM));
-                            mMap.addMarker(new MarkerOptions().position(lastKnownLatLng).title("Home"))
-                                    .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_home_blue_24));
-
-                        } else {
-                            Log.d(TAG, "Current location is null. Using defaults.");
-                            Log.e(TAG, "Exception: " + task.getException());
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 5));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
-            }
-        } catch (SecurityException e) {
-            Log.e("Exception: %s", e.getMessage());
-        }
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 5));
     }
 }
