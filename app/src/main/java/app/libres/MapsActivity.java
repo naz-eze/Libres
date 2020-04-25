@@ -1,13 +1,22 @@
 package app.libres;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,12 +35,19 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static android.location.LocationManager.GPS_PROVIDER;
 import static com.google.android.gms.maps.CameraUpdateFactory.newCameraPosition;
+import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -39,6 +55,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int DEFAULT_ZOOM = 14;
     public static final int ONE_KM_RADIUS = 1000;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
+    private static final int PERMISSION_REQUEST_CODE = 2;
 
     private GoogleMap mMap;
     private LatLng mDefaultLocation = new LatLng(40.4378698, -3.8196207); //Madrid as default location.
@@ -91,12 +108,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setHomeMarker(LatLng home, String address) {
         mMap.clear();
+        String radiusColour = "#50C1FCC1";
+        Location current = getCurrentLocation();
+        Location homeLoc = new Location("home");
+        homeLoc.setLatitude(home.latitude);
+        homeLoc.setLongitude(home.longitude);
+
+        if (current != null && current.distanceTo(homeLoc) > 1000) {
+            radiusColour = "#50FF3333";
+            View parentLayout = findViewById(android.R.id.content);
+            Snackbar snackbar = Snackbar.make(parentLayout, "Estás a más de 1 KM de casa! #quedateEnCasa", LENGTH_INDEFINITE);
+            View snackBarView = snackbar.getView();
+            snackBarView.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+
+            TextView textView = snackBarView.findViewById(R.id.snackbar_text);
+            textView.setTextColor(getResources().getColor(R.color.colorWhite));
+            textView.setTextSize(14);
+            snackbar.show();
+        }
+
         mMap.addCircle(new CircleOptions()
                 .center(home)
                 .radius(ONE_KM_RADIUS)
                 .strokeWidth(2)
-                .strokeColor(Color.GREEN)
-                .fillColor(Color.parseColor("#50C1FCC1")));
+                .strokeColor(Color.parseColor(radiusColour))
+                .fillColor(Color.parseColor(radiusColour)));
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(home)
@@ -117,5 +153,65 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e(TAG, "Style parsing failed.");
         }
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 5));
+        getCurrentLocation();
+    }
+
+    private Location getCurrentLocation() {
+        Location gpsLocation;
+        double longitude;
+        double latitude;
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION,
+                    ACCESS_COARSE_LOCATION, ACCESS_NETWORK_STATE}, PERMISSION_REQUEST_CODE);
+            Log.d(TAG, "Requesting location access again.");
+            return null;
+        } else if (!locationManager.isProviderEnabled(GPS_PROVIDER)) {
+            final Context context = new ContextThemeWrapper(MapsActivity.this, R.style.AppTheme2);
+
+            new MaterialAlertDialogBuilder(context)
+                    .setMessage("Tu ubicación no está habilitada")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("¿Quieres activar tu ubicación?", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                            context.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        }
+                    }).show();
+        }
+
+        try {
+            gpsLocation = locationManager.getLastKnownLocation(GPS_PROVIDER);
+            if (gpsLocation != null) {
+                latitude = gpsLocation.getLatitude();
+                longitude = gpsLocation.getLongitude();
+
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(latitude, longitude), 10));
+
+                mMap.setMyLocationEnabled(true);
+                return gpsLocation;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions,
+                                           int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 1
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getCurrentLocation();
+            }
+        }
     }
 }
