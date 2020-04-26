@@ -1,4 +1,4 @@
-package app.libres.adapter;
+package app.libres.covid.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,8 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 
-import app.libres.R;
-import app.libres.model.InfoModel;
+import app.libres.covid.R;
+import app.libres.covid.model.InfoModel;
 
 public class InfoAdapter extends ArrayAdapter<InfoModel> {
     public InfoAdapter(@NonNull Context context) {

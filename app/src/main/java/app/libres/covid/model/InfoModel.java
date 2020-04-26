@@ -1,4 +1,4 @@
-package app.libres.model;
+package app.libres.covid.model;
 
 public class InfoModel {
 

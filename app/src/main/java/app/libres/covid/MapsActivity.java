@@ -1,4 +1,4 @@
-package app.libres;
+package app.libres.covid;
 
 import android.Manifest;
 import android.content.Context;
@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -55,7 +54,7 @@ import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
 
-    private static final String TAG = "app.libres.MapsActivity";
+    private static final String TAG = "app.libres.covid.MapsActivity";
     private static final int DEFAULT_ZOOM = 14;
     public static final int ONE_KM_RADIUS = 1000;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
