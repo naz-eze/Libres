@@ -62,7 +62,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int PERMISSION_REQUEST_CODE = 2;
 
     private LocationManager locationManager;
-    private String provider;
+    private String provider = "gps";
 
     private GoogleMap mMap;
     final Location gpsLocation = new Location("GPS");
@@ -97,8 +97,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        provider = locationManager.getBestProvider(new Criteria(), false);
-
 
         FloatingActionButton fab = findViewById(R.id.places_button);
         fab.setOnClickListener(new View.OnClickListener() {
