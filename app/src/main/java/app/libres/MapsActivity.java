@@ -259,6 +259,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onProviderDisabled(String provider) {
         mMap.setMyLocationEnabled(false);
+        if (snackbar != null) snackbar.dismiss();
+
         final Context context = new ContextThemeWrapper(MapsActivity.this, R.style.AppTheme2);
         new MaterialAlertDialogBuilder(context)
                 .setMessage("Tu ubicación no está habilitada")
