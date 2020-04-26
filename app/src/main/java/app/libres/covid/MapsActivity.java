@@ -9,11 +9,13 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -44,7 +46,6 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -89,6 +90,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (item.getItemId() == R.id.action_info) {
                     Intent intent = new Intent(getApplicationContext(), InfoActivity.class);
                     startActivity(intent);
+                    overridePendingTransition(R.anim.from_right_in, R.anim.from_left_out);
                     return true;
                 }
                 return false;
@@ -116,6 +118,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         View parentLayout = findViewById(android.R.id.content);
         snackbar = Snackbar.make(parentLayout, "Estás a más de 1 KM de casa! #quedateEnCasa", LENGTH_INDEFINITE);
+
+        ImageView libresLogo = findViewById(R.id.libres_logo);
+        libresLogo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://libres.app/"));
+                v.getContext().startActivity(browserIntent);
+            }
+        });
     }
 
     @Override
