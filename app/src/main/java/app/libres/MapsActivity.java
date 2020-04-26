@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -44,6 +45,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -80,6 +82,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle("");
         toolbar.inflateMenu(R.menu.main_menu);
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+
+                if (item.getItemId() == R.id.action_info) {
+                    Intent intent = new Intent(getApplicationContext(), InfoActivity.class);
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            }
+        });
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         provider = locationManager.getBestProvider(new Criteria(), false);
@@ -123,7 +138,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setHomeMarker(LatLng home, String address) {
         mMap.clear();
-        if (snackbar!= null) snackbar.dismiss();
+        if (snackbar != null) snackbar.dismiss();
 
         String radiusColour = "#5000CC00";
         Location current = getCurrentLocation();
@@ -138,7 +153,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             textView.setTextColor(getResources().getColor(R.color.colorWhite));
 
             textView.setTextSize(14);
-            if (snackbar!= null) snackbar.show();
+            if (snackbar != null) snackbar.show();
         }
 
         mMap.addCircle(new CircleOptions()

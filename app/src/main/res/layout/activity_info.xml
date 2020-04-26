@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/info_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/roboto_regular" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Información y actualizaciones de Coronavirus"
+        android:textSize="20sp"
+        android:textColor="@color/quantum_black_text"
+        android:fontFamily="@font/roboto_regular"
+        android:layout_marginStart="@dimen/md_keylines"
+        android:layout_marginEnd="@dimen/md_keylines"
+        />
+
+    <ListView
+        android:id="@+id/info_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingTop="@dimen/md_keylines"
+        android:paddingBottom="@dimen/md_keylines"
+        android:divider="@android:color/transparent"
+        android:scrollbars="vertical" />
+</LinearLayout>
