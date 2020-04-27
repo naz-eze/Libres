@@ -244,7 +244,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onPause() {
         super.onPause();
-        locationManager.removeUpdates(this);
+//        locationManager.removeUpdates(this);
     }
 
     @Override

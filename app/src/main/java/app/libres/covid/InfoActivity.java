@@ -1,5 +1,8 @@
 package app.libres.covid;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -7,6 +10,8 @@ import android.widget.ListView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import app.libres.covid.adapter.InfoAdapter;
 import app.libres.covid.model.InfoModel;
@@ -36,7 +41,19 @@ public class InfoActivity extends AppCompatActivity {
                 new InfoModel("Más Información", "Información general", "Ministerio de Sanidad, Consumo y Bienestar Social", "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/home.htm"),
                 new InfoModel("Preguntas frecuentes", "Preguntas frecuentes", "Ministerio de Sanidad, Consumo y Bienestar Social", "https://mscbs.gob.es")
         );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "map")
+                .setSmallIcon(R.drawable.ic_home_24dp)
+                .setContentTitle("Hello")
+                .setContentText("Estás a más de 1 KM de casa! #quedateEnCasa")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        createNotificationChannel();
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(101, builder.build());
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -46,5 +63,17 @@ public class InfoActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("info", "name", importance);
+            channel.setDescription("description");
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 }
