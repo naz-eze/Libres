@@ -1,6 +1,7 @@
 package app.libres.covid;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.ListView;
 
 import androidx.annotation.Nullable;
@@ -35,5 +36,15 @@ public class InfoActivity extends AppCompatActivity {
                 new InfoModel("Más Información", "Información general", "Ministerio de Sanidad, Consumo y Bienestar Social", "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/home.htm"),
                 new InfoModel("Preguntas frecuentes", "Preguntas frecuentes", "Ministerio de Sanidad, Consumo y Bienestar Social", "https://mscbs.gob.es")
         );
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
