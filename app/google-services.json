@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "877906347260",
+    "firebase_url": "https://libred.firebaseio.com",
+    "project_id": "libred",
+    "storage_bucket": "libred.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:877906347260:android:e727dde36e165992b18379",
+        "android_client_info": {
+          "package_name": "app.libres.covid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "877906347260-ttmbo1osommhi029go6ha6pqsmd86d1d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.libres.covid",
+            "certificate_hash": "b513da8dfd77da4b0faf6daff796f2984e74ccb6"
+          }
+        },
+        {
+          "client_id": "877906347260-k53locf0f9nor3d89o8o3ilvu6i006nh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJJCndF_YcFfHunvRODRnU0HkRQEk0UAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "877906347260-k53locf0f9nor3d89o8o3ilvu6i006nh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
