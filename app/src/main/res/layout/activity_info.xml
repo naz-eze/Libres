@@ -14,7 +14,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Información y actualizaciones de Coronavirus"
+        android:text="Más Información"
         android:textSize="20sp"
         android:textColor="@color/quantum_black_text"
         android:fontFamily="@font/roboto_regular"
