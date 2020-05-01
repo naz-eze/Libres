@@ -148,7 +148,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.clear();
         if (snackbar != null) snackbar.dismiss();
 
-        String radiusColour = "#5000CC00";
+        String radiusColour = "#5000FF00";
         Location current = getCurrentLocation();
         Location homeLoc = new Location("home");
         homeLoc.setLatitude(home.latitude);
@@ -168,7 +168,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .center(home)
                 .radius(ONE_KM_RADIUS)
                 .strokeWidth(2)
-                .strokeColor(Color.parseColor(radiusColour))
+                .strokeColor(Color.parseColor("#00CC00"))
                 .fillColor(Color.parseColor(radiusColour)));
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
