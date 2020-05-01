@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="app.libres.covid">
+    package="app.libres.mobile">
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -24,7 +24,7 @@
              You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
         <activity
-            android:name=".MapsActivity"
+            android:name="app.libres.mobile.MapsActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,13 +34,13 @@
         </activity>
 
         <activity
-            android:name=".InfoActivity"
+            android:name="app.libres.mobile.InfoActivity"
             android:label=""
-            android:parentActivityName=".MapsActivity" >
+            android:parentActivityName="app.libres.mobile.MapsActivity" >
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MapsActivity" />
+                android:value="app.libres.mobile.MapsActivity" />
         </activity>
 
         <meta-data

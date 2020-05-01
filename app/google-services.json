@@ -8,38 +8,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:877906347260:android:e727dde36e165992b18379",
+        "mobilesdk_app_id": "1:877906347260:android:a1983cec139f78b3b18379",
         "android_client_info": {
-          "package_name": "app.libres.covid"
+          "package_name": "app.libres.mobile"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "877906347260-ttmbo1osommhi029go6ha6pqsmd86d1d.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "app.libres.covid",
-            "certificate_hash": "b513da8dfd77da4b0faf6daff796f2984e74ccb6"
-          }
-        },
-        {
-          "client_id": "877906347260-k53locf0f9nor3d89o8o3ilvu6i006nh.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAJJCndF_YcFfHunvRODRnU0HkRQEk0UAg"
+          "current_key": "AIzaSyCC0JDl7NLfWK__5oflt-E9WjvVOFew2V0"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "877906347260-k53locf0f9nor3d89o8o3ilvu6i006nh.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
