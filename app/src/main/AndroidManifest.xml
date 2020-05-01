@@ -47,15 +47,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
         <service android:name=".service.NotificationService" />
-
-<!--        <service android:name = ".NotificationService"-->
-<!--            android:label = "@string/app_name" >-->
-<!--            <intent-filter>-->
-<!--                <action-->
-<!--                    android:name = "app.tutorialspoint.com.notifyme.NotificationService" />-->
-<!--                <category android:name= "android.intent.category.DEFAULT" />-->
-<!--            </intent-filter>-->
-<!--        </service>-->
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>
