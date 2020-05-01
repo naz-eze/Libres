@@ -47,6 +47,8 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.Arrays;
 import java.util.List;
 
+import app.libres.mobile.service.NotificationService;
+
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
@@ -68,7 +70,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     final Location gpsLocation = new Location("GPS");
     private LatLng mDefaultLocation = new LatLng(40.4378698, -3.8196207); //Madrid as default location.
     private Snackbar snackbar;
-
+    private Location userHomeLocation;
+    private Place userPlace;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,8 +137,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                Place place = Autocomplete.getPlaceFromIntent(data);
-                setHomeMarker(place.getLatLng(), place.getAddress());
+                userPlace = Autocomplete.getPlaceFromIntent(data);
+                setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 Log.e(TAG, "An error occurred: " + resultCode);
                 Status status = Autocomplete.getStatusFromIntent(data);
@@ -150,11 +153,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         String radiusColour = "#5000FF00";
         Location current = getCurrentLocation();
-        Location homeLoc = new Location("home");
-        homeLoc.setLatitude(home.latitude);
-        homeLoc.setLongitude(home.longitude);
+        userHomeLocation = new Location("home");
+        userHomeLocation.setLatitude(home.latitude);
+        userHomeLocation.setLongitude(home.longitude);
 
-        if (current != null && current.getLatitude() != 0 && current.distanceTo(homeLoc) > 1000) {
+        if (current != null && current.getLatitude() != 0 && current.distanceTo(userHomeLocation) > 1000) {
             View snackBarView = snackbar.getView();
             snackBarView.setBackgroundColor(getResources().getColor(R.color.colorRed));
             TextView textView = snackBarView.findViewById(R.id.snackbar_text);
@@ -231,6 +234,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+        stopService(new Intent(this, NotificationService.class));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION,
@@ -239,12 +243,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         locationManager.requestLocationUpdates(provider, 200, 1f, this);
+        if (userPlace != null) setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        locationManager.removeUpdates(this);
     }
 
     @Override
@@ -284,5 +288,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Intent intent = new Intent(this, NotificationService.class);
+        if (userHomeLocation != null) {
+            intent.putExtra("latitude", userHomeLocation.getLatitude());
+            intent.putExtra("longitude", userHomeLocation.getLongitude());
+        }
+        startService(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        locationManager.removeUpdates(this);
     }
 }
