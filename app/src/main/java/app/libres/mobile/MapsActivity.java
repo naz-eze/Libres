@@ -1,6 +1,5 @@
 package app.libres.mobile;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
@@ -137,10 +137,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 if (broadcastFlag[0]) {
-                    broadcast.setBackgroundTintList(ColorStateList.
-                            valueOf(getResources().getColor(R.color.colorAccent)));
-                    startUpdatingHeatMap();
-                    broadcastFlag[0] = false;
+                    if (ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                            || ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                            || ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(getApplicationContext(), "Tu ubicación no está habilitada", Toast.LENGTH_SHORT).show();
+                    } else {
+                        broadcast.setBackgroundTintList(ColorStateList.
+                                valueOf(getResources().getColor(R.color.colorAccent)));
+                        startUpdatingHeatMap();
+                        broadcastFlag[0] = false;
+                    }
                 } else {
                     broadcast.setBackgroundTintList(ColorStateList.
                             valueOf(getResources().getColor(R.color.colorGrey)));
@@ -279,15 +285,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onResume() {
         super.onResume();
         stopService(new Intent(this, NotificationService.class));
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+
             ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION,
                     ACCESS_COARSE_LOCATION, ACCESS_NETWORK_STATE}, PERMISSION_REQUEST_CODE);
             Log.d(TAG, "Requesting location access again.");
-            return;
+        } else {
+            locationManager.requestLocationUpdates(provider, 200, 1f, this);
+            if (userPlace != null && userPlace.getLatLng() != null) {
+                setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
+            }
         }
-        locationManager.requestLocationUpdates(provider, 200, 1f, this);
-        if (userPlace != null) setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
     }
 
     @Override
@@ -352,7 +362,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void pushLocation(Location location) {
-        if (location != null) {
+        if (location != null && location.getLatitude() != 0 && location.getLongitude() != 0) {
             LocationModel locationModel = new LocationModel(location.getLatitude(), location.getLongitude());
             final LocationService locationService = RetrofitClient.getInstance(getApplicationContext())
                     .create(LocationService.class);
@@ -382,6 +392,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             HeatmapTileProvider provider = new HeatmapTileProvider.Builder()
                     .data(list)
                     .build();
+            if (mOverlay != null) {
+                mOverlay.clearTileCache();
+                mOverlay.remove();
+                mOverlay = null;
+            }
             mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
         }
     }
@@ -394,11 +409,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         fetchHeatMap(); //initial fetch
         heatMapTimer = new Timer();
         initializeTimerTask();
-        heatMapTimer.schedule(heatMapTimerTask, 5000, 5 * 1000); //
+        heatMapTimer.schedule(heatMapTimerTask, 5000, 60 * 1000); //
     }
 
     public void stopUpdatingHeatMap() {
-        if (mOverlay != null) mOverlay.remove();
+        if (mOverlay != null) {
+            mOverlay.clearTileCache();
+            mOverlay.remove();
+            mOverlay = null;
+        }
         if (heatMapTimer != null) {
             heatMapTimer.cancel();
             heatMapTimer = null;
