@@ -41,12 +41,16 @@ public class NotificationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        userHome = new Location("gps");
-        userHome.setLatitude(intent.getDoubleExtra("latitude", 0));
-        userHome.setLongitude(intent.getDoubleExtra("longitude", 0));
-
-        startTimer();
-        return START_STICKY;
+        if (intent != null) {
+            userHome = new Location("gps");
+            userHome.setLatitude(intent.getDoubleExtra("latitude", 0));
+            userHome.setLongitude(intent.getDoubleExtra("longitude", 0));
+            startTimer();
+            return START_STICKY;
+        } else {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
     }
 
     @Override

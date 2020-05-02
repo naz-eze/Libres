@@ -53,11 +53,11 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static com.google.android.gms.maps.CameraUpdateFactory.newCameraPosition;
-import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE;
+import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
 
-    private static final String TAG = "app.libres.covid.MapsActivity";
+    private static final String TAG = MapsActivity.class.getSimpleName();
     private static final int DEFAULT_ZOOM = 14;
     public static final int ONE_KM_RADIUS = 1000;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
@@ -69,8 +69,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     final Location gpsLocation = new Location("GPS");
     private LatLng mDefaultLocation = new LatLng(40.4378698, -3.8196207); //Madrid as default location.
-    private Snackbar snackbar;
-    private Location userHomeLocation;
     private Place userPlace;
 
     @Override
@@ -119,9 +117,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        View parentLayout = findViewById(android.R.id.content);
-        snackbar = Snackbar.make(parentLayout, "Estás a más de 1 KM de casa! #quedateEnCasa", LENGTH_INDEFINITE);
-
         ImageView libresLogo = findViewById(R.id.libres_logo);
         libresLogo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,22 +144,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setHomeMarker(LatLng home, String address) {
         mMap.clear();
-        if (snackbar != null) snackbar.dismiss();
 
         String radiusColour = "#5000FF00";
         Location current = getCurrentLocation();
-        userHomeLocation = new Location("home");
-        userHomeLocation.setLatitude(home.latitude);
-        userHomeLocation.setLongitude(home.longitude);
+        Location homeLocation = new Location("home");
+        homeLocation.setLatitude(home.latitude);
+        homeLocation.setLongitude(home.longitude);
 
-        if (current != null && current.getLatitude() != 0 && current.distanceTo(userHomeLocation) > 1000) {
+        if (current != null && current.getLatitude() != 0 && current.distanceTo(homeLocation) > 1000) {
+            View parentLayout = findViewById(android.R.id.content);
+            Snackbar snackbar = Snackbar.make(parentLayout, "Estás a más de 1 KM de casa! #quedateEnCasa", LENGTH_LONG);
             View snackBarView = snackbar.getView();
             snackBarView.setBackgroundColor(getResources().getColor(R.color.colorRed));
             TextView textView = snackBarView.findViewById(R.id.snackbar_text);
             textView.setTextColor(getResources().getColor(R.color.colorWhite));
-
             textView.setTextSize(14);
-            if (snackbar != null) snackbar.show();
+            snackbar.show();
         }
 
         mMap.addCircle(new CircleOptions()
@@ -232,6 +227,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (userPlace != null && userPlace.getLatLng() != null) {
+            Intent intent = new Intent(this, NotificationService.class);
+            intent.putExtra("latitude", userPlace.getLatLng().latitude);
+            intent.putExtra("longitude", userPlace.getLatLng().longitude);
+            startService(intent);
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         stopService(new Intent(this, NotificationService.class));
@@ -244,11 +250,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         locationManager.requestLocationUpdates(provider, 200, 1f, this);
         if (userPlace != null) setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
     }
 
     @Override
@@ -271,8 +272,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onProviderDisabled(String provider) {
         mMap.setMyLocationEnabled(false);
-        if (snackbar != null) snackbar.dismiss();
-
         final Context context = new ContextThemeWrapper(MapsActivity.this, R.style.AppTheme2);
         new MaterialAlertDialogBuilder(context)
                 .setMessage("Tu ubicación no está habilitada")
@@ -288,17 +287,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Intent intent = new Intent(this, NotificationService.class);
-        if (userHomeLocation != null) {
-            intent.putExtra("latitude", userHomeLocation.getLatitude());
-            intent.putExtra("longitude", userHomeLocation.getLongitude());
-        }
-        startService(intent);
     }
 
     @Override
