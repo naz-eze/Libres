@@ -21,7 +21,7 @@ public class RetrofitClient {
 
     private static final int TEN_MB = 10 * 1024 * 1024;
     private static final String CACHE_DIR = "httpCache";
-    private final static String BASE_URL = "https://libres.app/";
+    private final static String BASE_URL = "http://ec2-18-130-75-210.eu-west-2.compute.amazonaws.com:8080/";
     private final static String BASE_LOCAL_URL = "http://:8080/";
     private final static String BASE_EMULATOR_LOCAL_URL = "http://10.0.2.2:8080/";
 
@@ -30,7 +30,7 @@ public class RetrofitClient {
     public static Retrofit getInstance(Context context) {
         if (instance == null) {
             return new Retrofit.Builder()
-                    .baseUrl(BASE_EMULATOR_LOCAL_URL)
+                    .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(getHttpClient(context))
                     .build();
