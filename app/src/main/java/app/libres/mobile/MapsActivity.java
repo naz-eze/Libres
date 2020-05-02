@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -100,7 +101,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        FloatingActionButton fab = findViewById(R.id.places_button);
+        final FloatingActionButton fab = findViewById(R.id.places_button);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,6 +111,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .setHint("¿Dónde vives?")
                         .build(getApplicationContext());
                 startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
+            }
+        });
+
+        final FloatingActionButton broadcast = findViewById(R.id.broadcast_button);
+        final boolean[] broadcastFlag = {true};
+        broadcast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (broadcastFlag[0]) {
+                    broadcast.setBackgroundTintList(ColorStateList.
+                            valueOf(getResources().getColor(R.color.colorAccent)));
+                    //start heatmap fetch
+                    broadcastFlag[0] = false;
+                } else {
+                    broadcast.setBackgroundTintList(ColorStateList.
+                            valueOf(getResources().getColor(R.color.colorGrey)));
+                    //stop heatmap fetch
+                    broadcastFlag[0] = true;
+                }
             }
         });
 
