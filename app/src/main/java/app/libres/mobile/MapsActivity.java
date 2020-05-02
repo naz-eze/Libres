@@ -12,6 +12,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
@@ -35,6 +36,8 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
@@ -44,11 +47,22 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import app.libres.mobile.rest.LocationModel;
+import app.libres.mobile.rest.LocationResponse;
+import app.libres.mobile.rest.LocationService;
+import app.libres.mobile.rest.RetrofitClient;
 import app.libres.mobile.service.NotificationService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -63,6 +77,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final int ONE_KM_RADIUS = 1000;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
     private static final int PERMISSION_REQUEST_CODE = 2;
+    private static final int HTTP_STATUS_CREATED = 201;
+
 
     private LocationManager locationManager;
     private String provider = "gps";
@@ -71,6 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     final Location gpsLocation = new Location("GPS");
     private LatLng mDefaultLocation = new LatLng(40.4378698, -3.8196207); //Madrid as default location.
     private Place userPlace;
+    private TileOverlay mOverlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,12 +139,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (broadcastFlag[0]) {
                     broadcast.setBackgroundTintList(ColorStateList.
                             valueOf(getResources().getColor(R.color.colorAccent)));
-                    //start heatmap fetch
+                    startUpdatingHeatMap();
                     broadcastFlag[0] = false;
                 } else {
                     broadcast.setBackgroundTintList(ColorStateList.
                             valueOf(getResources().getColor(R.color.colorGrey)));
-                    //stop heatmap fetch
+                    stopUpdatingHeatMap();
                     broadcastFlag[0] = true;
                 }
             }
@@ -153,7 +170,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 userPlace = Autocomplete.getPlaceFromIntent(data);
-                setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
+                if (userPlace.getLatLng() != null)
+                    setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 Log.e(TAG, "An error occurred: " + resultCode);
                 Status status = Autocomplete.getStatusFromIntent(data);
@@ -313,5 +331,90 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onDestroy() {
         super.onDestroy();
         locationManager.removeUpdates(this);
+    }
+
+    private void fetchHeatMap() {
+        final LocationService locationService = RetrofitClient.getInstance(getApplicationContext()).create(LocationService.class);
+        locationService.getLocations().enqueue(new Callback<LocationResponse>() {
+            @Override
+            public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
+                if (response.body() != null) {
+                    List<LocationModel> locationModels = response.body().getLocations();
+                    if (!locationModels.isEmpty()) addHeatMap(locationModels);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LocationResponse> call, Throwable t) {
+                Log.e(TAG, "Error occurred fetching locations");
+            }
+        });
+    }
+
+    private void pushLocation(Location location) {
+        if (location != null) {
+            LocationModel locationModel = new LocationModel(location.getLatitude(), location.getLongitude());
+            final LocationService locationService = RetrofitClient.getInstance(getApplicationContext())
+                    .create(LocationService.class);
+
+            locationService.pushLocation(locationModel).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.code() == HTTP_STATUS_CREATED) {
+                        Log.i(TAG, "Location successfully sent");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e(TAG, "Error occurred pushing your location");
+                }
+            });
+        }
+    }
+
+    private void addHeatMap(List<LocationModel> locationModels) {
+        if (!locationModels.isEmpty()) {
+            List<LatLng> list = new ArrayList<>();
+            for (LocationModel loc : locationModels) {
+                list.add(new LatLng(loc.getLatitude(), loc.getLongitude()));
+            }
+            HeatmapTileProvider provider = new HeatmapTileProvider.Builder()
+                    .data(list)
+                    .build();
+            mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+        }
+    }
+
+    private final Handler handler = new Handler();
+    private Timer heatMapTimer;
+    private TimerTask heatMapTimerTask;
+
+    public void startUpdatingHeatMap() {
+        fetchHeatMap(); //initial fetch
+        heatMapTimer = new Timer();
+        initializeTimerTask();
+        heatMapTimer.schedule(heatMapTimerTask, 5000, 5 * 1000); //
+    }
+
+    public void stopUpdatingHeatMap() {
+        if (mOverlay != null) mOverlay.remove();
+        if (heatMapTimer != null) {
+            heatMapTimer.cancel();
+            heatMapTimer = null;
+        }
+    }
+
+    public void initializeTimerTask() {
+        heatMapTimerTask = new TimerTask() {
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        fetchHeatMap();
+                        pushLocation(getCurrentLocation());
+                    }
+                });
+            }
+        };
     }
 }
