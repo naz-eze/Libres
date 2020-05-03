@@ -67,6 +67,7 @@ import retrofit2.Response;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static android.location.LocationManager.GPS_PROVIDER;
 import static com.google.android.gms.maps.CameraUpdateFactory.newCameraPosition;
 import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG;
 
@@ -81,14 +82,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private LocationManager locationManager;
-    private String provider = "gps";
-
     private GoogleMap mMap;
     final Location gpsLocation = new Location("GPS");
     private LatLng mDefaultLocation = new LatLng(40.4378698, -3.8196207); //Madrid as default location.
     private Place userPlace;
     private TileOverlay mOverlay;
-    private Boolean isGpsOn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,7 +139,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                             || ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
                             || ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
-                        || !isGpsOn) {
+                            || !locationManager.isProviderEnabled(GPS_PROVIDER)) {
                         Toast.makeText(getApplicationContext(), "Tu ubicación no está habilitada", Toast.LENGTH_SHORT).show();
                     } else {
                         broadcast.setBackgroundTintList(ColorStateList.
@@ -225,7 +223,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.animateCamera(newCameraPosition(cameraPosition));
 
-        if (mOverlay != null) {fetchHeatMap();}
+        if (mOverlay != null) {
+            fetchHeatMap();
+        }
     }
 
     @Override
@@ -235,6 +235,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!success) {
             Log.e(TAG, "Style parsing failed.");
         }
+        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+                float zoomLevel = mMap.getCameraPosition().zoom;
+                if (mOverlay != null && zoomLevel > 12.5) {
+                    mOverlay.setVisible(false);
+                } else if (mOverlay != null && !mOverlay.isVisible()) {
+                    mOverlay.setVisible(true);
+                }
+            }
+        });
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 5.5f));
         getCurrentLocation();
     }
@@ -252,7 +263,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return null;
 
         } else {
-            Location location = locationManager.getLastKnownLocation(provider);
+            Location location = locationManager.getLastKnownLocation(GPS_PROVIDER);
             mMap.setMyLocationEnabled(true);
             if (location != null) {
                 gpsLocation.setLatitude(location.getLatitude());
@@ -297,7 +308,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     ACCESS_COARSE_LOCATION, ACCESS_NETWORK_STATE}, PERMISSION_REQUEST_CODE);
             Log.d(TAG, "Requesting location access again.");
         } else {
-            locationManager.requestLocationUpdates(provider, 200, 1f, this);
+            locationManager.requestLocationUpdates(GPS_PROVIDER, 200, 1f, this);
             if (userPlace != null && userPlace.getLatLng() != null) {
                 setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
             }
@@ -319,13 +330,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onProviderEnabled(String provider) {
         mMap.setMyLocationEnabled(true);
-        isGpsOn = true;
     }
 
     @Override
     public void onProviderDisabled(String provider) {
         mMap.setMyLocationEnabled(false);
-        isGpsOn = false;
         stopUpdatingHeatMap();
 
         final Context context = new ContextThemeWrapper(MapsActivity.this, R.style.AppTheme2);
