@@ -21,7 +21,7 @@ public class RetrofitClient {
 
     private static final int TEN_MB = 10 * 1024 * 1024;
     private static final String CACHE_DIR = "httpCache";
-    private final static String BASE_URL = "http://ec2-18-130-75-210.eu-west-2.compute.amazonaws.com:8080/";
+    private final static String BASE_URL = "http://libres.eu-west-2.elasticbeanstalk.com:8080/";
     private final static String BASE_LOCAL_URL = "http://:8080/";
     private final static String BASE_EMULATOR_LOCAL_URL = "http://10.0.2.2:8080/";
 
