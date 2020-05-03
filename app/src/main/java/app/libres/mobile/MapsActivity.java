@@ -88,6 +88,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng mDefaultLocation = new LatLng(40.4378698, -3.8196207); //Madrid as default location.
     private Place userPlace;
     private TileOverlay mOverlay;
+    private Boolean isGpsOn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,7 +140,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (broadcastFlag[0]) {
                     if (ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                             || ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                            || ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+                            || ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
+                        || !isGpsOn) {
                         Toast.makeText(getApplicationContext(), "Tu ubicación no está habilitada", Toast.LENGTH_SHORT).show();
                     } else {
                         broadcast.setBackgroundTintList(ColorStateList.
@@ -222,6 +224,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_home_blue_24));
 
         mMap.animateCamera(newCameraPosition(cameraPosition));
+
+        if (mOverlay != null) {fetchHeatMap();}
     }
 
     @Override
@@ -315,11 +319,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onProviderEnabled(String provider) {
         mMap.setMyLocationEnabled(true);
+        isGpsOn = true;
     }
 
     @Override
     public void onProviderDisabled(String provider) {
         mMap.setMyLocationEnabled(false);
+        isGpsOn = false;
+        stopUpdatingHeatMap();
+
         final Context context = new ContextThemeWrapper(MapsActivity.this, R.style.AppTheme2);
         new MaterialAlertDialogBuilder(context)
                 .setMessage("Tu ubicación no está habilitada")
