@@ -176,20 +176,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 userPlace = Autocomplete.getPlaceFromIntent(data);
-                if (userPlace.getLatLng() != null)
-                    setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
+                if (userPlace.getLatLng() != null) setHomeMarker(userPlace.getLatLng(), userPlace.getAddress());
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 Log.e(TAG, "An error occurred: " + resultCode);
                 Status status = Autocomplete.getStatusFromIntent(data);
                 Log.i(TAG, status.getStatusMessage());
-            } else if (resultCode == RESULT_CANCELED) { /* */}
+            }
         }
     }
 
     private void setHomeMarker(LatLng home, String address) {
         mMap.clear();
 
-        String radiusColour = "#5000FF00";
+        String radiusColour = "#5090EE90";
         Location current = getCurrentLocation();
         Location homeLocation = new Location("home");
         homeLocation.setLatitude(home.latitude);
