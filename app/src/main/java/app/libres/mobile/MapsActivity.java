@@ -82,21 +82,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle("");
-        toolbar.inflateMenu(R.menu.main_menu);
-
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-
-                if (item.getItemId() == R.id.action_info) {
-                    Intent intent = new Intent(getApplicationContext(), InfoActivity.class);
-                    startActivity(intent);
-                    overridePendingTransition(R.anim.from_right_in, R.anim.from_left_out);
-                    return true;
-                }
-                return false;
-            }
-        });
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
