@@ -238,7 +238,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onCameraIdle() {
                 float zoomLevel = mMap.getCameraPosition().zoom;
-                if (mOverlay != null && zoomLevel > 12.5) {
+                if (mOverlay != null && zoomLevel > 14) {
                     mOverlay.setVisible(false);
                 } else if (mOverlay != null && !mOverlay.isVisible()) {
                     mOverlay.setVisible(true);
