@@ -1,4 +1,4 @@
-package app.libres.mobile;
+package app.libres.android;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -55,14 +54,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import app.libres.mobile.rest.LocationModel;
-import app.libres.mobile.rest.LocationResponse;
-import app.libres.mobile.rest.LocationService;
-import app.libres.mobile.rest.RetrofitClient;
-import app.libres.mobile.service.NotificationService;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import app.libres.android.service.NotificationService;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -99,21 +91,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle("");
-        toolbar.inflateMenu(R.menu.main_menu);
-
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-
-                if (item.getItemId() == R.id.action_info) {
-                    Intent intent = new Intent(getApplicationContext(), InfoActivity.class);
-                    startActivity(intent);
-                    overridePendingTransition(R.anim.from_right_in, R.anim.from_left_out);
-                    return true;
-                }
-                return false;
-            }
-        });
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
