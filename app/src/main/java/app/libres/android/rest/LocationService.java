@@ -1,4 +1,4 @@
-package app.libres.mobile.rest;
+package app.libres.android.rest;
 
 import retrofit2.Call;
 import retrofit2.http.Body;

@@ -1,4 +1,4 @@
-package app.libres.mobile.rest;
+package app.libres.android.rest;
 
 import com.google.gson.annotations.SerializedName;
 

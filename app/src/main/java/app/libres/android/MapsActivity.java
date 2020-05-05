@@ -54,7 +54,14 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import app.libres.android.rest.LocationModel;
+import app.libres.android.rest.LocationResponse;
+import app.libres.android.rest.LocationService;
+import app.libres.android.rest.RetrofitClient;
 import app.libres.android.service.NotificationService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
