@@ -8,15 +8,24 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:877906347260:android:a1983cec139f78b3b18379",
+        "mobilesdk_app_id": "1:877906347260:android:e821bbfb226de95ab18379",
         "android_client_info": {
-          "package_name": "app.libres.mobile"
+          "package_name": "app.libres.android"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "877906347260-897n350hmqag0cl47cb784kvr14ae01a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.libres.android",
+            "certificate_hash": "b513da8dfd77da4b0faf6daff796f2984e74ccb6"
+          }
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCC0JDl7NLfWK__5oflt-E9WjvVOFew2V0"
+          "current_key": "AIzaSyCPlWQsqarKV6jWfNVv4y_qfjNOHGNV43Y"
         }
       ],
       "services": {

@@ -1,4 +1,4 @@
-package app.libres.mobile.service;
+package app.libres.android.service;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -17,7 +17,7 @@ import androidx.core.app.NotificationCompat;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import app.libres.mobile.R;
+import app.libres.android.R;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
