@@ -36,6 +36,17 @@
         android:layout_marginTop="50dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/broadcast_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="90dp"
+        app:backgroundTint="@color/colorGrey"
+        android:src="@drawable/ic_broadcast_24dp"
+        app:borderWidth="0dp" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/places_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
